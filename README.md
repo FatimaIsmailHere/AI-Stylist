@@ -80,3 +80,4 @@ The system uses a simplified approach where users are created/identified by user
 - **Tempfile**: Temporary file handling for uploaded images
 
 The system is designed to run locally with Ollama for AI inference, making it suitable for development environments while maintaining the flexibility to deploy with cloud-based AI services in production.
+<img width="1483" height="857" alt="image" src="https://github.com/user-attachments/assets/86656673-11ee-4d77-af7b-f8b6ce2029b5" />
