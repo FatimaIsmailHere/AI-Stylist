@@ -30,15 +30,19 @@
                     <div class="card-body">
                         <form id="uploadForm" enctype="multipart/form-data">
                             <div class="mb-4">
-                                <label for="imageFile" class="form-label">Choose outfit image</label>
-                                <input type="file" class="form-control" id="imageFile" name="file" accept="image/*" required>
-                                <div class="form-text">Supported formats: JPG, PNG, GIF</div>
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
                             </div>
                             
                             <div class="mb-4">
-                                <label for="userId" class="form-label">User ID (Optional)</label>
-                                <input type="number" class="form-control" id="userId" name="user_id" value="1">
-                                <div class="form-text">Default user ID for demo purposes</div>
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="imageFile" class="form-label">Choose outfit image</label>
+                                <input type="file" class="form-control" id="imageFile" name="file" accept="image/*" required>
+                                <div class="form-text">Supported formats: JPG, PNG, GIF</div>
                             </div>
 
                             <div class="d-grid">

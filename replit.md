@@ -32,14 +32,14 @@ The application follows a service-oriented architecture with specialized compone
 - **SearchService**: Provides web search functionality using DuckDuckGo for similar outfits
 
 ### Data Model Structure
-- **User Management**: Basic user system with outfit history tracking
+- **User Management**: Simplified user system with username and email only - no passwords or authentication
 - **Outfit Storage**: Photo URLs with detection timestamps and user associations
 - **Clothing Items**: Detailed item records with type, color palette, and bounding box data
 - **Recommendations**: AI-generated styling suggestions linked to specific outfits
 - **Fashion Trends**: Seasonal trend data storage for future enhancements
 
-### Authentication & Authorization
-Currently implements a simplified user system with basic user ID handling. The architecture supports future implementation of proper authentication mechanisms.
+### User System
+The system uses a simplified approach where users are created/identified by username and email combination. No authentication or password storage is implemented - users simply provide their username and email when uploading outfit images. The system automatically creates new users or associates uploads with existing users based on these credentials.
 
 ### File Processing Pipeline
 1. Image upload through FastAPI file handling

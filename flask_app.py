@@ -50,7 +50,32 @@ def upload_image():
             return jsonify({"success": False, "detail": "No file provided"}), 400
         
         file = request.files['file']
-        user_id = request.form.get('user_id', 1, type=int)
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        
+        # Validate user input
+        if not username or not email:
+            return jsonify({"success": False, "detail": "Username and email are required"}), 400
+        
+        # Find or create user
+        user = db.query(User).filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        
+        if user:
+            # Update existing user if needed
+            if user.username != username:
+                user.username = username
+            if user.email != email:
+                user.email = email
+            db.commit()
+            user_id = user.user_id
+        else:
+            # Create new user
+            new_user = User(username=username, email=email)
+            db.add(new_user)
+            db.flush()
+            user_id = new_user.user_id
         
         if file.filename == '':
             return jsonify({"success": False, "detail": "No file selected"}), 400
