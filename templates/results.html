@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stylist - Style Analysis Results</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-sparkles me-3"></i>
+                        Style Analysis Results
+                    </h1>
+                    <a href="/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Analyze Another Outfit
+                    </a>
+                </div>
+
+                <!-- Detected Items Summary -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-tags me-2"></i>
+                            Detected Items
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if clothing_items %}
+                            <div class="row">
+                                {% for item in clothing_items %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ item.type.title() }}</h6>
+                                            {% if item.color_palette %}
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div style="width: 30px; height: 30px; 
+                                                                background-color: rgb({{ item.color_palette[0] }}, {{ item.color_palette[1] }}, {{ item.color_palette[2] }}); 
+                                                                border: 1px solid #dee2e6; border-radius: 4px; margin-right: 8px;"></div>
+                                                    <small class="text-muted">
+                                                        RGB({{ item.color_palette[0] }}, {{ item.color_palette[1] }}, {{ item.color_palette[2] }})
+                                                    </small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No items detected.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- AI Styling Suggestions -->
+                {% if recommendations %}
+                    {% for recommendation in recommendations %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-robot me-2"></i>
+                                AI Styling Suggestions
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    Style Analysis
+                                </h6>
+                                <div style="white-space: pre-wrap;">{{ recommendation.suggestion }}</div>
+                            </div>
+                            {% if recommendation.reasoning %}
+                                <p class="text-muted mt-3">
+                                    <strong>Analysis:</strong> {{ recommendation.reasoning }}
+                                </p>
+                            {% endif %}
+                            <small class="text-muted">
+                                Generated on {{ recommendation.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Similar Outfits Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-images me-2"></i>
+                            Similar Outfit Inspiration
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="similarImages">
+                            <div class="text-center">
+                                <button id="loadSimilarImages" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>
+                                    Find Similar Outfits
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-5">
+                    <a href="/" class="btn btn-success btn-lg me-3">
+                        <i class="fas fa-plus me-2"></i>
+                        Analyze Another Outfit
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-print me-2"></i>
+                        Save Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loadSimilarImages').addEventListener('click', async function() {
+            const outfitId = {{ outfit.outfit_id }};
+            const button = this;
+            const similarImagesDiv = document.getElementById('similarImages');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Searching...';
+            
+            const formData = new FormData();
+            formData.append('outfit_id', outfitId);
+            
+            try {
+                const response = await fetch('/generate-suggestions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.similar_images) {
+                    displaySimilarImages(result.similar_images);
+                } else {
+                    throw new Error(result.detail || 'Failed to load similar images');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                similarImagesDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Unable to load similar images: ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        function displaySimilarImages(similarImages) {
+            const similarImagesDiv = document.getElementById('similarImages');
+            
+            if (!similarImages || similarImages.length === 0) {
+                similarImagesDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No similar images found for this outfit combination.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            similarImages.forEach(searchResult => {
+                html += `
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-search me-2"></i>
+                            Search: "${searchResult.query}"
+                        </h6>
+                        <div class="row">
+                `;
+                
+                searchResult.images.forEach(image => {
+                    html += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <img src="${image.url}" class="card-img-top" alt="${image.title}" 
+                                     style="height: 200px; object-fit: cover;"
+                                     onerror="this.parentElement.innerHTML='<div class=&quot;text-center p-4&quot;><i class=&quot;fas fa-image text-muted&quot; style=&quot;font-size: 2rem;&quot;></i><br><small class=&quot;text-muted&quot;>Image unavailable</small></div>'">
+                                <div class="card-body">
+                                    ${image.title ? `<h6 class="card-title">${image.title}</h6>` : ''}
+                                    ${image.source ? `<small class="text-muted">${image.source}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            similarImagesDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stylist - Upload Your Outfit</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-sparkles me-3"></i>
+                        AI Stylist
+                    </h1>
+                    <p class="lead">Upload your outfit photo and get AI-powered styling suggestions</p>
+                </div>
+
+                <!-- Upload Form -->
+                <div class="card shadow-lg">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-camera me-2"></i>
+                            Upload Your Outfit
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <label for="imageFile" class="form-label">Choose outfit image</label>
+                                <input type="file" class="form-control" id="imageFile" name="file" accept="image/*" required>
+                                <div class="form-text">Supported formats: JPG, PNG, GIF</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="userId" class="form-label">User ID (Optional)</label>
+                                <input type="number" class="form-control" id="userId" name="user_id" value="1">
+                                <div class="form-text">Default user ID for demo purposes</div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-magic me-2"></i>
+                                    Analyze Outfit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="card mt-4" style="display: none;">
+                    <div class="card-body text-center">
+                        <div class="spinner-border text-primary me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>Analyzing your outfit with AI...</span>
+                    </div>
+                </div>
+
+                <!-- Detection Results -->
+                <div id="detectionResults" class="card mt-4" style="display: none;">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            Detection Results
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Please review the detected items and make any necessary corrections:</p>
+                        <div id="detectedItems"></div>
+                        <div class="mt-4">
+                            <h5>Dominant Colors</h5>
+                            <div id="dominantColors" class="d-flex gap-2 flex-wrap"></div>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button id="generateSuggestions" class="btn btn-success btn-lg">
+                                <i class="fas fa-stars me-2"></i>
+                                Generate Style Suggestions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentOutfitId = null;
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const loadingState = document.getElementById('loadingState');
+            const detectionResults = document.getElementById('detectionResults');
+            
+            // Show loading state
+            loadingState.style.display = 'block';
+            detectionResults.style.display = 'none';
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentOutfitId = result.outfit_id;
+                    displayDetectionResults(result);
+                    loadingState.style.display = 'none';
+                    detectionResults.style.display = 'block';
+                } else {
+                    throw new Error(result.detail || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                loadingState.style.display = 'none';
+                alert('Error processing image: ' + error.message);
+            }
+        });
+
+        function displayDetectionResults(result) {
+            const detectedItemsDiv = document.getElementById('detectedItems');
+            const dominantColorsDiv = document.getElementById('dominantColors');
+            
+            // Display detected items
+            detectedItemsDiv.innerHTML = '';
+            result.detected_items.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'mb-3 p-3 border rounded';
+                itemDiv.innerHTML = `
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <strong>Item ${index + 1}:</strong> ${item.type}
+                            <br><small class="text-muted">Confidence: ${(item.confidence * 100).toFixed(1)}%</small>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="correction_${index}" 
+                                       value="${item.type}" placeholder="Correct item type">
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        onclick="correctDetection(${index})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                detectedItemsDiv.appendChild(itemDiv);
+            });
+            
+            // Display dominant colors
+            dominantColorsDiv.innerHTML = '';
+            result.dominant_colors.forEach((color, index) => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'text-center';
+                colorDiv.innerHTML = `
+                    <div style="width: 80px; height: 80px; background-color: rgb(${color[0]}, ${color[1]}, ${color[2]}); 
+                                border: 2px solid #dee2e6; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>RGB(${color[0]}, ${color[1]}, ${color[2]})</small>
+                `;
+                dominantColorsDiv.appendChild(colorDiv);
+            });
+        }
+
+        async function correctDetection(itemIndex) {
+            const correctedType = document.getElementById(`correction_${itemIndex}`).value;
+            
+            if (!correctedType.trim()) {
+                alert('Please enter a valid item type');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('outfit_id', currentOutfitId);
+            formData.append('item_index', itemIndex);
+            formData.append('corrected_type', correctedType);
+            
+            try {
+                const response = await fetch('/correct-detection', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Detection corrected successfully!');
+                } else {
+                    throw new Error(result.detail || 'Correction failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error correcting detection: ' + error.message);
+            }
+        }
+
+        document.getElementById('generateSuggestions').addEventListener('click', async function() {
+            if (!currentOutfitId) {
+                alert('Please upload an image first');
+                return;
+            }
+            
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+            
+            const formData = new FormData();
+            formData.append('outfit_id', currentOutfitId);
+            
+            try {
+                const response = await fetch('/generate-suggestions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Redirect to results page
+                    window.location.href = `/results/${currentOutfitId}`;
+                } else {
+                    throw new Error(result.detail || 'Failed to generate suggestions');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating suggestions: ' + error.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-stars me-2"></i>Generate Style Suggestions';
+            }
+        });
+    </script>
+</body>
+</html>

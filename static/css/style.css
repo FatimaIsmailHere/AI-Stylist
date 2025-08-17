@@ -1,0 +1,38 @@
+/* Additional custom styles if needed */
+.color-palette-item {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid var(--bs-border-color);
+    margin: 2px;
+}
+
+.detection-item {
+    transition: all 0.2s ease;
+}
+
+.detection-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.image-grid img {
+    transition: transform 0.2s ease;
+}
+
+.image-grid img:hover {
+    transform: scale(1.05);
+}
+
+/* Print styles */
+@media print {
+    .btn, .navbar, #loadSimilarImages {
+        display: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+}
