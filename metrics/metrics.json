@@ -1,0 +1,5 @@
+{
+    "yolo_precision": 1.0,
+    "yolo_recall": 1.0,
+    "kmeans_silhouette": 0.0
+}

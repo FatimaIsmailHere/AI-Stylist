@@ -9,7 +9,7 @@ class DetectionService:
             # Import ultralytics here to handle missing dependency gracefully
             from ultralytics import YOLO
             # Load YOLO Model - exact same as original code
-            self.model = YOLO("best.pt")
+            self.model = YOLO("C:/Users/Admin/Downloads/stylo/StyleSensei/best.pt")
             logger.info("YOLO model loaded successfully")
         except ImportError as e:
             logger.error(f"Ultralytics not installed: {e}")

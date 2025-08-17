@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/ai_stylist")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:3318@localhost/ai_stylist")
 
 # Create engine
 engine = create_engine(DATABASE_URL)

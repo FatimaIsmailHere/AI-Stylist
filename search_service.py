@@ -7,7 +7,7 @@ class SearchService:
         """Initialize search service - preserving existing code exactly"""
         try:
             # Import DDGS here to handle missing dependency gracefully
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             # Initialize the DDGS search object - exact same as original
             self.search = DDGS()
         except ImportError as e:

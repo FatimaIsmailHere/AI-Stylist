@@ -49,7 +49,7 @@ class AIService:
         try:
             response_text = ""
             stream = self.client.chat.completions.create(
-                model="llama3.1",
+                model="llama3:latest",
                 messages=[{"role": "user", "content": prompt}],
                 stream=True,
             )
